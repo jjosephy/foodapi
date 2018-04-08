@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/jjosephy/foodapi/errorcodes"
+	"github.com/jjosephy/foodapi/logging"
 )
 
 // Search API template
@@ -32,6 +33,7 @@ func NewFoodAPIProvider() *FoodAPIProvider {
 // GetData public API implementation
 func (f *FoodAPIProvider) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 
+	logging.WriteMessage("INFO", "started")
 	var data map[string]interface{}
 	var err error
 	var body []byte
