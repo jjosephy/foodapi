@@ -1,9 +1,13 @@
 package provider
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/jjosephy/foodapi/errorcodes"
 )
 
 // Search API template
@@ -11,7 +15,7 @@ const searchTemplate string = "https://api.nal.usda.gov/ndb/search/?format=json&
 
 // FoodDataProvider is the public interface for getting food data
 type FoodDataProvider interface {
-	GetData(w http.ResponseWriter, r *http.Request)
+	GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error)
 }
 
 // FoodAPIProvider implementation of FoodDataProviderInterface
@@ -23,13 +27,18 @@ func NewFoodAPIProvider() *FoodAPIProvider {
 	return &FoodAPIProvider{}
 }
 
+// TODO: Create Common Response Model with versions
+
 // GetData public API implementation
-func (f *FoodAPIProvider) GetData(w http.ResponseWriter, r *http.Request) {
+func (f *FoodAPIProvider) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+
+	var data map[string]interface{}
+	var err error
+	var body []byte
 
 	query := r.URL.Query().Get("s")
 	if query == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "invalid search query")
+		return nil, handleError(http.StatusBadRequest, w, errorcodes.ErrorInvalidSearchQuery)
 	}
 
 	// Switch on Request Method
@@ -38,14 +47,31 @@ func (f *FoodAPIProvider) GetData(w http.ResponseWriter, r *http.Request) {
 		s := fmt.Sprintf(searchTemplate, query)
 		resp, err := http.Get(s)
 		if err != nil {
-			// handle error
-			fmt.Printf("%s\n", "error")
+			return nil, handleError(http.StatusInternalServerError, w, errorcodes.ErrorFailedCallingAPI)
 		}
+
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, handleError(http.StatusBadRequest, w, errorcodes.ErrorCouldNotReadResponseBody)
+		}
+
+		if err := json.Unmarshal(body, &data); err != nil {
+			return nil, handleError(http.StatusBadRequest, w, errorcodes.ErrorCouldNotParseResponseBody)
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
 		w.Write(body)
+		return data, nil
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
+		return data, err
 	}
+}
+
+// Private method to handle errors
+func handleError(statusCode int, writer http.ResponseWriter, errorMsg string) error {
+	writer.WriteHeader(statusCode)
+	fmt.Fprintf(writer, errorMsg)
+	return errors.New("invalid search query")
 }
