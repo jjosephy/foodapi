@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/jjosephy/foodapi/handler"
+	"github.com/jjosephy/foodapi/provider"
 )
 
 // Main entry point used to set up routes
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/food", handler.FoodHandler())
+	mux.HandleFunc("/food", handler.FoodHandler(provider.NewFoodAPIProvider()))
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		fmt.Printf("main(): %s\n", err)
