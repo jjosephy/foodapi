@@ -12,7 +12,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/food", handler.FoodHandler(provider.NewFoodAPIProvider()))
-	err := http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServeTLS(":8443", "./cert.pem", "./private_key", mux)
 	if err != nil {
 		fmt.Printf("main(): %s\n", err)
 	}
