@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/jjosephy/foodapi/errorcodes"
 	"github.com/jjosephy/foodapi/logging"
@@ -46,6 +47,7 @@ func (f *FoodAPIProvider) GetData(w http.ResponseWriter, r *http.Request) (map[s
 	// Switch on Request Method
 	switch r.Method {
 	case "GET":
+		query = url.QueryEscape(query)
 		s := fmt.Sprintf(searchTemplate, query)
 		resp, err := http.Get(s)
 		if err != nil {
