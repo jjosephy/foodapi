@@ -2,3 +2,4 @@ cert.pem
 private_key
 scripts/cert.pem
 scripts/private_key
+.DS_Store
