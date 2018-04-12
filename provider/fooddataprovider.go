@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/jjosephy/foodapi/contract"
 	"github.com/jjosephy/foodapi/errorcodes"
 	"github.com/jjosephy/foodapi/logging"
 )
@@ -62,10 +63,18 @@ func (f *FoodAPIProvider) GetData(w http.ResponseWriter, r *http.Request) (map[s
 
 		if err := json.Unmarshal(body, &data); err != nil {
 			return nil, handleError(http.StatusBadRequest, w, errorcodes.ErrorCouldNotParseResponseBody)
-			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		w.Write(body)
+		//Create search results, marshal to json and write
+		d := data["list"].(map[string]interface{})
+		x := d["item"].([]interface{})
+
+		c := contract.NewSearchResults(x)
+		str, e := json.Marshal(c)
+		if e != nil {
+			return nil, handleError(http.StatusInternalServerError, w, "Could not marshal search results")
+		}
+		w.Write(str)
 		return data, nil
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
