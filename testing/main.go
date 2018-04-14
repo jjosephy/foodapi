@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	file := "/Users/jjosephy/Source/go/src/github.com/jjosephy/testing/test.json"
+	file := "C:\\Users\\jjose\\Source\\go\\src\\github.com\\jjosephy\\foodapi\\testing\\test.json"
 
 	dat, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -24,7 +24,17 @@ func main() {
 
 	m := i.(map[string]interface{})
 
-	ml := m["list"].(map[string]interface{})["item"].([]interface{})
+	// this is hte main map to all properties (map["list"])
+	mlist := m["list"].(map[string]interface{})
+
+	// Can access properties like this
+	start := mlist["start"].(float64)
+	end := mlist["end"].(float64)
+	total := mlist["total"].(float64)
+
+	fmt.Printf("%f %f %f", start, end, total)
+
+	ml := mlist["item"].([]interface{})
 
 	fmt.Print(ml)
 }
